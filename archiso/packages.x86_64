@@ -1,8 +1,8 @@
 # Haibane RenmeiOS — package list (mkarchiso archiso profile)
 # Base system
 base
-linux-zen
-linux-zen-headers
+linux
+linux-headers
 linux-firmware
 amd-ucode
 intel-ucode
@@ -16,6 +16,7 @@ memtest86+-efi
 archinstall
 
 # Core utilities
+zsh
 sudo
 vim
 neovim

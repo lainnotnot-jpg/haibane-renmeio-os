@@ -15,7 +15,7 @@ halo-gold.
 
 | Piece | Ships |
 |---|---|
-| Base | Arch Linux, `linux-zen` kernel, rolling release |
+| Base | Arch Linux, `linux` kernel, rolling release |
 | Desktop | Hyprland (Wayland), SDDM login manager (enabled on the installed system) |
 | Shell | Shadow Shell v3.60 (bar, island, launcher, dock, widgets, lock screen, Settings app `SUPER+U`) |
 | Terminal | kitty + fish |
@@ -37,10 +37,12 @@ HaibaneRenmeiOS/
 │   └── haibane-renmei-os.svg    # halo/wings logo
 ├── LICENSE
 └── archiso/                     # archiso profile — this *is* the distro
-    ├── profiledef.sh            # ISO name/label, boot modes, permissions
+    ├── profiledef.sh            # ISO name/label, boot modes (BIOS syslinux + UEFI systemd-boot), squashfs
+    ├── syslinux/                # vendored releng BIOS boot menu (branded Haibane RenmeiOS)
+    ├── efiboot/                 # vendored releng UEFI systemd-boot entries
     ├── packages.x86_64          # everything that goes into the ISO
-    ├── pacman.conf
-    ├── enable-services.sh       # systemd enablement (needs Linux root)
+    ├── pacman.conf              # vendored releng pacman.conf
+    ├── enable-services.sh       # systemd + runtime symlinks into airootfs (needs Linux root)
     └── airootfs/                # files overlaid on top of the live system
         ├── usr/lib/os-release   # NAME="Haibane RenmeiOS", ID=haibane-renmeio-os
         ├── etc/hostname, motd, issue

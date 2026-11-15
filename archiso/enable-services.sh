@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
-# Enable systemd services in the airootfs overlay for the LIVE ISO.
-# MUST be run as root on the Linux build host BEFORE mkarchiso,
-# because Windows cannot create the symlinks directly:
+# Create the symlinks the archiso runtime expects inside the airootfs.
+# MUST be run as root on the Linux build host BEFORE mkarchiso
+# (Windows cannot create them):
 #   sudo ./enable-services.sh ./airootfs
-#
-# NOTE: sddm is deliberately NOT enabled here. archiso's live root account
-# works via getty autologin, but is locked for graphical logins — starting
-# SDDM on the live ISO would strand the user at an unusable login screen.
-# SDDM is meant to be enabled on the *installed* system instead:
-#   sudo systemctl enable --now sddm NetworkManager
 set -euo pipefail
 
 if [[ $EUID -ne 0 ]]; then
@@ -17,14 +11,24 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 AIROOTFS="${1:-$(dirname "$(readlink -f "$0")")/airootfs}"
-WANTS="$AIROOTFS/etc/systemd/system/multi-user.target.wants"
-mkdir -p "$WANTS"
 
-for svc in NetworkManager.service systemd-timesyncd.service; do
-  ln -sfn "/usr/lib/systemd/system/$svc" "$WANTS/$svc"
-  echo "enabled $svc -> $WANTS/$svc"
-done
+MU="$AIROOTFS/etc/systemd/system/multi-user.target.wants"
+SY="$AIROOTFS/etc/systemd/system/sysinit.target.wants"
+mkdir -p "$MU" "$SY"
 
-echo "Service enablement done. Now run mkarchiso."
-echo "Reminder: after installing to disk, enable SDDM with:"
-echo "  sudo systemctl enable --now sddm NetworkManager"
+# NetworkManager for the live environment + NTP sync
+ln -sfn /usr/lib/systemd/system/NetworkManager.service      "$MU/NetworkManager.service"
+ln -sfn /usr/lib/systemd/system/systemd-timesyncd.service   "$SY/systemd-timesyncd.service"
+ln -sfn /usr/lib/systemd/system/systemd-time-wait-sync.service "$SY/systemd-time-wait-sync.service"
+
+# pacman keyring initialization on first boot of the live system
+ln -sfn /etc/systemd/system/pacman-init.service             "$MU/pacman-init.service"
+ln -sfn /usr/lib/systemd/system/systemd-timesyncd.service   "$AIROOTFS/etc/systemd/system/dbus-org.freedesktop.timesync1.service"
+
+# runtime symlinks (same as upstream releng)
+ln -sfn ../usr/share/zoneinfo/UTC                           "$AIROOTFS/etc/localtime"
+ln -sfn /run/systemd/resolve/stub-resolv.conf               "$AIROOTFS/etc/resolv.conf"
+
+echo "airootfs symlinks created in $AIROOTFS:"
+ls -l "$MU" "$SY" | sed 's/^/  /'
+echo "Done. Now run mkarchiso."
