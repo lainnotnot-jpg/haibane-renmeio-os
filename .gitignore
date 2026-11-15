@@ -1,0 +1,6 @@
+out/
+work/
+*.iso
+*.work
+.DS_Store
+Thumbs.db

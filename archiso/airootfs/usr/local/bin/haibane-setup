@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Haibane RenmeiOS — user-level first-run setup.
+#
+# Installs the bundled Shadow Shell (DarkShadowShell — a Hyprland/niri
+# Quickshell shell with bar, launcher, notifications, lock screen and
+# Settings app) for the calling user, using the offline copy that ships
+# in the ISO at /usr/share/darkshadowshell/.
+#
+# Usage:
+#   haibane-setup                 # install Shadow Shell for Hyprland (default)
+#   haibane-setup --wm=niri       # any flag is passed to the shell installer
+#   haibane-setup --dry-run       # show what would happen, change nothing
+set -euo pipefail
+
+VERSION="3.60"
+TARBALL="${HAIBANE_SHELL_TARBALL:-/usr/share/darkshadowshell/darkshadowshell-v${VERSION}.tar.gz}"
+DEST="${XDG_DATA_HOME:-$HOME/.local/share}/darkshadowshell"
+
+echo "Haibane RenmeiOS — Shadow Shell setup (DarkShadowShell v${VERSION})"
+echo
+
+if ! command -v hyprland >/dev/null 2>&1 && ! command -v Hyprland >/dev/null 2>&1; then
+  echo "note: 'hyprland' was not found on PATH."
+  echo "      Run this on a system installed with the hyprland package"
+  echo "      (the live ISO ships it; ctrl+alt+F2… it just works after install too)."
+fi
+
+if [[ ! -f "$TARBALL" ]]; then
+  echo "error: bundled Shadow Shell tarball not found at:" >&2
+  echo "       $TARBALL" >&2
+  echo "       Falling back to cloning from GitHub…" >&2
+  if command -v git >/dev/null 2>&1; then
+    rm -rf "$DEST"
+    git clone --depth 1 https://github.com/shadowww-dev/DarkShadowShell "$DEST"
+    exec bash "$DEST/install.sh" --wm=hyprland --yes "$@"
+  else
+    echo "error: git is not available either. Aborting." >&2
+    exit 1
+  fi
+fi
+
+echo "Extracting $TARBALL → $DEST"
+rm -rf "$DEST"
+mkdir -p "$DEST"
+tar -xzf "$TARBALL" -C "$DEST" --strip-components=1
+
+echo "Running the Shadow Shell installer (hyprland, non-interactive)…"
+echo "Any arguments you gave me are forwarded: $*"
+echo
+bash "$DEST/install.sh" --wm=hyprland --yes "$@"
+
+echo
+echo "Done! Log out and back in (or start Hyprland from SDDM)."
+echo "Keybinds:  SUPER+Q terminal   SUPER+R app menu   SUPER+U Settings"
+echo "Fastfetch with the Haibane Renmei logo is already in ~/.config/fastfetch."
+if command -v systemctl >/dev/null 2>&1 && ! systemctl is-enabled --quiet sddm.service 2>/dev/null; then
+  echo
+  echo "note: SDDM is not enabled on this system yet. Enable it with:"
+  echo "  sudo systemctl enable --now sddm NetworkManager"
+fi

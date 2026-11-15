@@ -1,0 +1,61 @@
+name: Build Haibane RenmeiOS ISO
+
+# Runs on GitHub's runners inside an Arch Linux container.
+# Manual run:  Actions → Build Haibane RenmeiOS ISO → Run workflow
+# Tagged release: push a tag like v1.0 → ISO is also attached to a GitHub Release
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # needed to attach the ISO to a release on tag pushes
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: archlinux:latest
+      options: --privileged   # mkarchiso needs chroot/mount privileges
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm archiso git sudo github-cli
+          # make sure the keyring is fresh, otherwise package sig checks fail
+          pacman-key --init || true
+          pacman -Sy --noconfirm archlinux-keyring
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Enable systemd services in the airootfs overlay
+        run: |
+          chmod +x archiso/enable-services.sh archiso/profiledef.sh archiso/airootfs/usr/local/bin/haibane-setup
+          ./archiso/enable-services.sh ./archiso/airootfs
+
+      - name: Build the ISO
+        run: |
+          mkdir -p out work
+          mkarchiso -v -w "$PWD/work" -o "$PWD/out" archiso
+          sha256sum out/*.iso
+
+      - name: Upload ISO artifact (always)
+        uses: actions/upload-artifact@v4
+        with:
+          name: haibane-renmeio-os-iso
+          path: out/*.iso
+          compression-level: 0
+          retention-days: 30
+
+      - name: Attach ISO to GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/*.iso \
+            --title "Haibane RenmeiOS $GITHUB_REF_NAME" \
+            --notes "Haibane RenmeiOS $GITHUB_REF_NAME — preinstalled Haibane Renmei wallpapers, Shadow Shell (Hyprland), branded fastfetch." \
+          || gh release upload "$GITHUB_REF_NAME" out/*.iso --clobber

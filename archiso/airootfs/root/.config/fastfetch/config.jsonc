@@ -1,0 +1,70 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fastfetch-cli/fastfetch/master/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "/usr/share/haibane-renmei-os/haibane-renmei.txt",
+    "padding": {
+      "top": 1,
+      "left": 2,
+      "right": 4,
+      "bottom": 0
+    },
+    "color": {
+      "&": "255",
+      "+": "255",
+      ".": "243",
+      ":": "243",
+      ";": "243",
+      "X": "221",
+      "x": "221",
+      "$": "221"
+    }
+  },
+  "display": {
+    "separator": "  ",
+    "key": "217",
+    "percent": {
+      "type": 3,
+      "color": {
+        "green": "green",
+        "yellow": "yellow",
+        "red": "red"
+      }
+    },
+    "duration": {
+      "abbreviation": true,
+      "spaceBeforeUnit": "never"
+    }
+  },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    "kernel",
+    "uptime",
+    "packages",
+    "shell",
+    "de",
+    "wm",
+    "wmtheme",
+    "theme",
+    "icons",
+    "font",
+    "cursor",
+    "terminal",
+    {
+      "type": "terminalfont"
+    },
+    "cpu",
+    "gpu",
+    "memory",
+    "swap",
+    "disk",
+    "battery",
+    "localip",
+    "locale",
+    "break",
+    "colors"
+  ]
+}

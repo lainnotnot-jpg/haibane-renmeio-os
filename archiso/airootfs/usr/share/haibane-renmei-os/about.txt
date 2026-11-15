@@ -1,0 +1,20 @@
+Haibane RenmeiOS 1.0 "Rakka"
+═════════════════════════════
+Arch-based · Hyprland · Shadow Shell · fastfetch
+
+"Our wings are not for flying —
+ they are for learning to walk."
+
+A fan-made Arch Linux distribution themed after the
+Haibane Renmei series. Ships with:
+
+  • Hyprland (Wayland) + SDDM login
+  • Shadow Shell (DarkShadowShell v3.60) — Material 3 bar,
+    launcher, dock, widgets, lock screen & Settings app
+  • fastfetch preloaded with the Haibane Renmei logo
+  • Preinstalled Haibane Renmei wallpapers (system-wide in
+    /usr/share/haibane-renmei-os/wallpapers/ and in
+    ~/Pictures/Wallpapers/), shown by hyprpaper on first login
+  • PipeWire audio, NetworkManager, the fish shell
+
+Project: https://github.com/lainn/haibane-renmeio-os

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="haloGlow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#f5efe4" stop-opacity="0.9"/>
+      <stop offset="45%" stop-color="#9ad6ce" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#10141a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="20%" y1="15%" x2="80%" y2="85%">
+      <stop offset="0%" stop-color="#e8c87a"/>
+      <stop offset="55%" stop-color="#9ad6ce"/>
+      <stop offset="100%" stop-color="#5f8f8a"/>
+    </linearGradient>
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe4"/>
+      <stop offset="100%" stop-color="#9ad6ce"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="48" fill="#10141a"/>
+  <circle cx="128" cy="128" r="96" fill="url(#haloGlow)"/>
+
+  <!-- left wing -->
+  <g fill="none" stroke="url(#wingGrad)" stroke-width="7" stroke-linecap="round" opacity="0.95">
+    <path d="M104 118 C 78 96, 52 96, 30 118"/>
+    <path d="M103 134 C 80 118, 56 118, 36 138"/>
+    <path d="M104 150 C 84 138, 62 138, 46 156"/>
+  </g>
+
+  <!-- right wing (mirrored) -->
+  <g fill="none" stroke="url(#wingGrad)" stroke-width="7" stroke-linecap="round" opacity="0.95" transform="translate(256 0) scale(-1 1)">
+    <path d="M104 118 C 78 96, 52 96, 30 118"/>
+    <path d="M103 134 C 80 118, 56 118, 36 138"/>
+    <path d="M104 150 C 84 138, 62 138, 46 156"/>
+  </g>
+
+  <!-- halo ring (enso-like open circle) -->
+  <circle cx="128" cy="128" r="52" fill="none" stroke="url(#ringGrad)"
+          stroke-width="14" stroke-linecap="round"
+          stroke-dasharray="285 41" transform="rotate(-52 128 128)"/>
+
+  <!-- halo glow dot -->
+  <ellipse cx="128" cy="52" rx="26" ry="7" fill="none" stroke="#e8c87a" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- center speck -->
+  <circle cx="128" cy="128" r="4.5" fill="#e8c87a"/>
+</svg>

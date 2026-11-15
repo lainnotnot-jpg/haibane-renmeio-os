@@ -1,0 +1,26 @@
+
+   ░░░░░░░░░░░░░  Haibane RenmeiOS  ░░░░░░░░░░░░░
+
+        "Our wings are not for flying —
+         they are for learning to walk."
+
+   Welcome to the Haibane RenmeiOS live environment.
+
+   You are logged in as root (getty autologin, no password).
+   The live ISO boots to this text console by design — please do
+   NOT start SDDM here (the live root account is locked for
+   graphical logins).
+
+   ── First steps ─────────────────────────────────────────────
+   • See the branded prompt:           fastfetch
+   • Wallpapers for your desktop & the Shadow Shell picker:
+     ~/Pictures/Wallpapers/   (Rakka, the haibane cast, the sketch)
+   • Install Haibane RenmeiOS to disk: archinstall
+   • In the installed system: sudo systemctl enable --now sddm NetworkManager
+   • In your installed system (as your user): haibane-setup
+     installs Hyprland + Shadow Shell — fully offline, no network needed
+   ─────────────────────────────────────────────────────────────
+
+   Haibane RenmeiOS is a fan project inspired by the
+   Haibane Renmei anime series. Not affiliated with the studio.
+
