@@ -1,0 +1,15 @@
+# Haibane RenmeiOS — branding hook
+# mkarchiso copies this airootfs overlay in BEFORE installing packages, so a
+# branded /usr/lib/os-release cannot simply overwrite the filesystem package's
+# copy. Instead we install it into place right after `filesystem` is set up
+# (same trick releng uses with its mirror hook). Also re-applies on upgrades.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+
+[Action]
+Description = Applying Haibane RenmeiOS branding (os-release)...
+When = PostTransaction
+Exec = /usr/bin/install -Dm644 /usr/share/haibane-renmei-os/os-release /usr/lib/os-release
