@@ -3,6 +3,11 @@ name: Build Haibane RenmeiOS ISO
 # Runs on GitHub's runners inside an Arch Linux container.
 # Manual run:  Actions → Build Haibane RenmeiOS ISO → Run workflow
 # Tagged release: push a tag like v1.0 → ISO is also attached to a GitHub Release
+#
+# Jobs:
+#   build-iso    - builds the ISO, uploads it as an artifact
+#   smoke-test   - downloads the ISO, verifies structure + actually boots it
+#                  headless in QEMU (BIOS and UEFI) and checks the console log
 on:
   workflow_dispatch:
   push:
@@ -24,7 +29,6 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --needed --noconfirm archiso git sudo github-cli
-          # make sure the keyring is fresh, otherwise package sig checks fail
           pacman-key --init || true
           pacman -Sy --noconfirm archlinux-keyring
 
@@ -59,3 +63,71 @@ jobs:
             --title "Haibane RenmeiOS $GITHUB_REF_NAME" \
             --notes "Haibane RenmeiOS $GITHUB_REF_NAME — preinstalled Haibane Renmei wallpapers, Shadow Shell (Hyprland), branded fastfetch." \
           || gh release upload "$GITHUB_REF_NAME" out/*.iso --clobber
+
+  smoke-test:
+    needs: build-iso
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: archlinux:latest
+      options: --privileged   # needs /dev/kvm for the boot test
+
+    steps:
+      - name: Install test dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm qemu-desktop edk2-ovmf squashfs-tools libarchive-tools xorriso unzip
+
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: haibane-renmeio-os-iso
+          path: out
+
+      - name: "ISO sanity check (structure + branding inside)"
+        run: |
+          set -e
+          iso="$(ls out/*.iso)"
+          echo "ISO: $iso"
+          ls -lh "$iso"
+          bsdtar tf "$iso" | grep -E 'vmlinuz-linux|initramfs-linux\.img|airootfs\.sfs|BOOTX64\.(EFI|efi)' || { echo 'MISSING boot files'; exit 1; }
+          bsdtar tf "$iso" | grep -iE 'syslinux|loader\.conf' | head -5
+          echo '--- extracting airootfs.sfs'
+          cd out
+          bsdtar xf "$(basename "$iso")" haibane/x86_64/airootfs.sfs
+          unsquashfs -l haibane/x86_64/airootfs.sfs > sfs.list
+          grep -q 'usr/lib/os-release' sfs.list && echo 'os-release: present'
+          grep -q 'usr/share/haibane-renmei-os/haibane-renmei.txt' sfs.list && echo 'fastfetch logo: present'
+          grep -q 'usr/share/haibane-renmei-os/wallpapers/rakka-halo.jpg' sfs.list && echo 'wallpapers: present'
+          grep -q 'etc/skel/.config/fastfetch/config.jsonc' sfs.list && echo 'fastfetch config: present'
+          grep -q 'usr/local/bin/haibane-setup' sfs.list && echo 'haibane-setup: present'
+          grep -q 'usr/share/darkshadowshell/darkshadowshell-v3.60.tar.gz' sfs.list && echo 'shadow shell bundle: present'
+          echo '--- os-release contents:'
+          unsquashfs -cat haibane/x86_64/airootfs.sfs usr/lib/os-release | head -5
+
+      - name: Smoke boot (BIOS, 4 min)
+        run: |
+          iso="$(ls out/*.iso)"
+          ( sleep 60; printf 'fastfetch\n'; sleep 50; printf '\n' ) | \
+            timeout 240 qemu-system-x86_64 -enable-kvm -m 2048 -smp 2 -cdrom "$iso" -boot order=d -display none -serial stdio -no-reboot > serial-bios.log 2>&1 || true
+          tail -60 serial-bios.log
+          grep -Ei 'root@|login:|Haibane RenmeiOS|archiso' serial-bios.log && echo 'BIOS boot: OK'
+
+      - name: Smoke boot (UEFI/OVMF, 4 min)
+        run: |
+          iso="$(ls out/*.iso)"
+          timeout 240 qemu-system-x86_64 -enable-kvm -m 2048 -smp 2 \
+            -drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd \
+            -cdrom "$iso" -boot order=d -display none -serial stdio -no-reboot > serial-uefi.log 2>&1 || true
+          tail -60 serial-uefi.log
+          grep -Ei 'root@|login:|Haibane RenmeiOS|systemd-boot|archiso' serial-uefi.log && echo 'UEFI boot: OK'
+
+      - name: Upload serial logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-logs
+          path: |
+            out/../serial-bios.log
+            serial-uefi.log
+          if-no-files-found: ignore
