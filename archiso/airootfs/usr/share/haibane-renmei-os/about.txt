@@ -17,4 +17,4 @@ Haibane Renmei series. Ships with:
     ~/Pictures/Wallpapers/), shown by hyprpaper on first login
   • PipeWire audio, NetworkManager, the fish shell
 
-Project: https://github.com/lainn/haibane-renmeio-os
+Project: https://github.com/lainnotnot-jpg/haibane-renmeio-os

@@ -90,7 +90,7 @@ cannot create the airootfs symlinks or run `mkarchiso`, which is why
 
 ```bash
 sudo pacman -S --needed archiso git
-git clone https://github.com/lainn/haibane-renmeio-os
+git clone https://github.com/lainnotnot-jpg/haibane-renmeio-os
 cd haibane-renmeio-os
 sudo ./build.sh
 # ISO → out/haibane-renmeio-os-YYYY.MM.DD-x86_64.iso
